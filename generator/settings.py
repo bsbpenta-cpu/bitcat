@@ -23,6 +23,8 @@ class Settings:
         self.apply_checks()
 
     def add_custom_settings(self):
+        base_path = f"/{(self.BASE_PATH or '').strip('/')}"
+        self.BASE_PATH = "" if base_path == "/" else base_path
         self.CRYPTOS = self.load_comma_separated("CRYPTOS", "btc")
         self.ADDITIONAL_COMPONENTS = self.load_comma_separated("ADDITIONAL_COMPONENTS")
         self.EXCLUDE_COMPONENTS = self.load_comma_separated("EXCLUDE_COMPONENTS")
@@ -38,7 +40,7 @@ class Settings:
         self.API_PORT = env(f"REVERSEPROXY_{self.PROTOCOL.upper()}_PORT", self.DEFAULT_API_PORT, prefix="")
         self.API_PORT = self.API_PORT.rsplit(":", 1)[-1]
         port_suffix = f":{self.API_PORT}" if not self.BEHIND_REVERSE_PROXY and self.API_PORT != self.DEFAULT_API_PORT else ""
-        self.API_URL = f"{self.PROTOCOL}://{self.HOST}{port_suffix}"
+        self.API_URL = f"{self.PROTOCOL}://{self.HOST}{port_suffix}{self.BASE_PATH}"
 
     def apply_checks(self):
         if self.ONE_DOMAIN_MODE and self.INSTALLATION_PACK == "frontend":

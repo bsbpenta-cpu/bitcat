@@ -10,6 +10,7 @@ services:
       - "nginx_html:/usr/share/nginx/html"
       - "nginx_certs:/etc/nginx/certs:ro"
       - "nginx_vhost:/etc/nginx/vhost.d"
+      - "./branding:/usr/share/nginx/branding:ro"
 
   nginx-gen:
     restart: unless-stopped
@@ -19,9 +20,11 @@ services:
       PROXY_PROTOCOL: ${REVERSEPROXY_PROXYPROTOCOL:-false}
       TRUSTED_IPS: ${REVERSEPROXY_TRUSTED_IPS:-}
       TRUSTED_HEADERS: ${REVERSEPROXY_TRUSTED_HEADERS:-}
+      BITCART_BASE_PATH: ${BITCART_BASE_PATH:-}
     volumes:
       - "/var/run/docker.sock:/tmp/docker.sock:ro"
       - "./nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro"
+      - "./branding:/usr/share/nginx/branding:ro"
       - "nginx_conf:/etc/nginx/conf.d"
       - "nginx_html:/usr/share/nginx/html"
       - "nginx_certs:/etc/nginx/certs:ro"

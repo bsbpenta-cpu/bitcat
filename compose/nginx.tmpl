@@ -9,6 +9,7 @@
 {{ end }}
 
 {{ define "redirects" }}
+    {{ $basePath := .BasePath }}
     {{ range $container := $.Containers }}
         {{ if $container.Env.REAL_IP_HEADER }}
             {{ range $containerNetwork := $container.Networks }}
@@ -27,13 +28,13 @@
                 {{ $serviceName := (index $container.Labels "com.docker.compose.service") }}
                 {{ if (and (eq $backendUsed "false") (eq $serviceName "backend")) }}
                     {{ $backendUsed = "true" }}
-    location /api/ {
+    location {{ $basePath }}/api/ {
         proxy_pass http://{{ trim $container.Env.VIRTUAL_HOST_NAME }}/;
     }
                 {{ end }}
                 {{ if (and (eq $adminUsed "false") (eq $serviceName "admin")) }}
                     {{ $adminUsed = "true" }}
-    location /admin {
+    location {{ $basePath }}/admin {
         proxy_pass http://{{ trim $container.Env.VIRTUAL_HOST_NAME }};
     }
                 {{ end }}
@@ -46,7 +47,7 @@
                 {{ $serviceName := (index $container.Labels "com.docker.compose.service") }}
                 {{ if (and (eq $backendUsed "false") (eq $serviceName "backend")) }}
                     {{ $backendUsed = "true" }}
-    location /api/ {
+    location {{ $basePath }}/api/ {
         proxy_pass http://{{ trim $container.Env.VIRTUAL_HOST_NAME }}/;
     }
                 {{ end }}
@@ -270,10 +271,19 @@ server {
     ssl_reject_handshake on;
     {{ template "access_log" $ }}
     {{ if eq (len $allVirtualHosts) 1 }}
-    location / {
-        proxy_pass http://{{ trim $firstUpstreamName }};
+    {{ $basePath := or $.Env.BITCART_BASE_PATH "" }}
+    location = / {
+        {{ if ne $basePath "" }}return 302 {{ $basePath }}/;{{ else }}proxy_pass http://{{ trim $firstUpstreamName }};{{ end }}
     }
-    {{ template "redirects" (dict "HostName" $firstHostName "Containers" $) }}
+    location {{ if ne $basePath "" }}{{ $basePath }}/{{ else }}/{{ end }} {
+        proxy_pass http://{{ trim $firstUpstreamName }};
+        proxy_set_header Accept-Encoding "";
+        sub_filter_types text/html;
+        sub_filter_once off;
+        sub_filter '</head>' '<script src="{{ $basePath }}/branding/bitcat.js" defer></script></head>';
+    }
+    location {{ $basePath }}/branding/ { alias /usr/share/nginx/branding/; }
+    {{ template "redirects" (dict "HostName" $firstHostName "Containers" $ "BasePath" $basePath) }}
     {{ else }}
     location ^~ / {
         return 503;
@@ -384,7 +394,7 @@ server {
     location / {
         proxy_pass http://{{ trim $upstream_name }};
     }
-    {{ template "redirects" (dict "HostName" $host_name "Containers" $) }}
+    {{ template "redirects" (dict "HostName" $host_name "Containers" $ "BasePath" (or $.Env.BITCART_BASE_PATH "")) }}
 }
     {{ end }}
 {{ end }}
@@ -519,6 +529,12 @@ server {
         fastcgi_pass {{ trim $upstream_name }};
         {{ else }}
         proxy_pass {{ trim $proto }}://{{ trim $upstream_name }};
+        {{ if ne (or $.Env.BITCART_BASE_PATH "") "" }}
+        proxy_set_header Accept-Encoding "";
+        sub_filter_types text/html;
+        sub_filter_once off;
+        sub_filter '</head>' '<script src="{{ $.Env.BITCART_BASE_PATH }}/branding/bitcat.js" defer></script></head>';
+        {{ end }}
         {{ end }}
         {{ if (exists (printf "/etc/nginx/htpasswd/%s" $host)) }}
         auth_basic	"Restricted {{ $host }}";
@@ -530,7 +546,11 @@ server {
         include /etc/nginx/vhost.d/default_location;
         {{ end }}
     }
-    {{ template "redirects" (dict "HostName" $host_name "Containers" $) }}
+    {{ if ne (or $.Env.BITCART_BASE_PATH "") "" }}
+    location = / { return 302 {{ $.Env.BITCART_BASE_PATH }}/; }
+    location {{ $.Env.BITCART_BASE_PATH }}/branding/ { alias /usr/share/nginx/branding/; }
+    {{ end }}
+    {{ template "redirects" (dict "HostName" $host_name "Containers" $ "BasePath" (or $.Env.BITCART_BASE_PATH "")) }}
 }
 
 {{ end }}
