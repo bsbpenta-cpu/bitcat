@@ -15,6 +15,10 @@
         proxy_set_header Accept-Encoding "";
         sub_filter_types text/html;
         sub_filter_once off;
+        # Current backend images do not expose /api/modal/bitcart.js.  Load a
+        # small compatibility bootstrap from the branding volume instead, so
+        # the store can safely register its modal message listener.
+        sub_filter '<head>' '<head><script src="{{ .BasePath }}/branding/bitcart-modal.js"></script>';
         sub_filter '</head>' '<script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
 {{ end }}
 
