@@ -5,11 +5,11 @@ export BITCART_HOST="15.235.184.49"
 export BITCART_BASE_PATH="/bitcat"
 export BITCART_REVERSEPROXY="nginx"
 export REVERSEPROXY_DEFAULT_HOST="15.235.184.49"
-# Keep BitCat behind the reverse proxy already running on the host by default.
-# The loopback defaults prevent direct public access and avoid claiming ports
-# 80/443, while allowing an operator to opt into a separate public port.
-: "${REVERSEPROXY_HTTP_PORT:=127.0.0.1:10080}"
-: "${REVERSEPROXY_HTTPS_PORT:=127.0.0.1:10443}"
+# Publish BitCat on dedicated ports by default so it is reachable without
+# changing the other project which owns ports 80/443. setup.sh persists these
+# bindings in .env while generating the runtime Compose configuration.
+: "${REVERSEPROXY_HTTP_PORT:=10080}"
+: "${REVERSEPROXY_HTTPS_PORT:=10443}"
 export REVERSEPROXY_HTTP_PORT REVERSEPROXY_HTTPS_PORT
 
 # The host already manages Docker and its own startup policy.  In particular,

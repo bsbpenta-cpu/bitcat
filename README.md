@@ -7,10 +7,10 @@
 
 ### BitCat deployment
 
-This fork includes BitCat branding and a deployment intended to run behind an
-existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat listens only on
-`127.0.0.1:10080` (HTTP) and `127.0.0.1:10443` (the internal HTTPS listener), so
-it does not claim the host's public ports 80 or 443. The deployment script also
+This fork includes BitCat branding and a deployment which does not interfere
+with an existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat publishes
+port `10080` (HTTP) and `10443` (the internal HTTPS listener), so it does not
+claim the host's ports 80 or 443. The deployment script also
 disables Bitcart's systemd registration, preventing its first run from
 restarting the shared Docker daemon. It uses the fixed Compose project name
 `bitcat`, so `docker compose ps` from this checkout shows the running stack.
@@ -28,19 +28,18 @@ BitCat on ports 80/443 as a workaround: add the `/bitcat` locations to the
 
 It is not possible to serve `http://IP/bitcat` without changing whichever
 proxy owns `IP:80`: only that process can choose where the `/bitcat` request
-goes. If the other project must remain completely untouched, publish BitCat on
-a separate port instead:
+goes. If the other project must remain completely untouched, use BitCat's
+dedicated port. It is assigned automatically by `deploy-bitcat.sh`:
 
 ```bash
-REVERSEPROXY_HTTP_PORT=10080 ./deploy-bitcat.sh
+./deploy-bitcat.sh
 ```
 
 Then open `http://IP:10080/bitcat/`. Restrict port 10080 with the VPS firewall
-if it should not be public to everyone. The deployment defaults remain
-loopback-only; `REVERSEPROXY_HTTP_PORT` and `REVERSEPROXY_HTTPS_PORT` can be
-overridden explicitly when direct access is desired. Other no-change options
-are a second public IP (bind BitCat's ports on that IP) or a tunnel that maps a
-separate hostname directly to BitCat's loopback port.
+if it should not be public to everyone. To restore loopback-only access, run
+`REVERSEPROXY_HTTP_PORT=127.0.0.1:10080 ./deploy-bitcat.sh` instead. The HTTP and
+HTTPS bindings can still be overridden explicitly. Other no-change options are
+a second public IP or a tunnel that maps a separate hostname to BitCat.
 
 The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
 complete one-domain installation below a different URL prefix.
