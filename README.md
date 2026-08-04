@@ -7,9 +7,19 @@
 
 ### BitCat deployment
 
-This fork includes BitCat branding and a ready-to-run HTTP deployment for
-`http://15.235.184.49/bitcat/`. Run `./deploy-bitcat.sh`; the store is served at
+This fork includes BitCat branding and a deployment intended to run behind an
+existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat listens only on
+`127.0.0.1:10080` (HTTP) and `127.0.0.1:10443` (the internal HTTPS listener), so
+it does not claim the host's public ports 80 or 443. The deployment script also
+disables Bitcart's systemd registration, preventing its first run from
+restarting the shared Docker daemon.
+
+Add the locations from `contrib/nginx/bitcat.conf.example` to the existing
+reverse proxy's HTTPS `server` block. The public store is then served at
 `/bitcat/`, the admin panel at `/bitcat/admin`, and the API at `/bitcat/api`.
+Validate and reload the host proxy after changing its configuration, for
+example with `nginx -t && systemctl reload nginx`.
+
 The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
 complete one-domain installation below a different URL prefix.
 
