@@ -15,7 +15,11 @@
         proxy_set_header Accept-Encoding "";
         sub_filter_types text/html;
         sub_filter_once off;
-        sub_filter '</head>' '<script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
+        # The store expects the modal client to have created window.bitcart by
+        # the time its application code runs.  Loading it synchronously here
+        # prevents a race with the store's asynchronously loaded copy, which
+        # otherwise makes invoice creation fail on slower clients.
+        sub_filter '</head>' '<script>if (!window.bitcart) document.write(`<script src="{{ .BasePath }}/api/modal/bitcart.js"><\/script>`)</script><script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
 {{ end }}
 
 {{ define "redirects" }}
