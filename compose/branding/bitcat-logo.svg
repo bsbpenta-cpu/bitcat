@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 320" role="img" aria-labelledby="title">
+  <title id="title">BitCat</title>
+  <defs><linearGradient id="navy" x2="1" y2="1"><stop stop-color="#1c304c"/><stop offset="1" stop-color="#071426"/></linearGradient><linearGradient id="gold" y2="1"><stop stop-color="#ffd426"/><stop offset="1" stop-color="#ff8a00"/></linearGradient></defs>
+  <g transform="translate(24 24)">
+    <circle cx="150" cy="136" r="96" fill="url(#gold)" stroke="#e66d00" stroke-width="10"/>
+    <path d="M82 54 28 16v100L8 164c24 58 76 90 126 104l22-92-48-17-22-45 22-73z" fill="url(#navy)" stroke="#071426" stroke-width="4"/>
+    <path d="m184 45 62-45v102z" fill="#ff9700"/>
+    <path d="M137 75v122m-28-96h52c43 0 43 52 0 52h-52 58c45 0 45 57 0 57h-58m43-135V54m25 23V57m-25 153v25m25-25v22" fill="none" stroke="#fff0a0" stroke-width="15"/>
+    <path d="M238 135h56m-56 34h56" stroke="#10233d" stroke-width="9"/><circle cx="294" cy="135" r="12" fill="#ffc21a" stroke="#10233d" stroke-width="7"/><circle cx="294" cy="169" r="12" fill="#ffc21a" stroke="#10233d" stroke-width="7"/>
+  </g>
+  <text x="340" y="218" font-family="Arial,Helvetica,sans-serif" font-weight="800" font-size="170" fill="#10233d">Bit<tspan fill="#ff8a00">Cat</tspan></text>
+</svg>

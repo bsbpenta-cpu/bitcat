@@ -38,7 +38,9 @@ def rule(services, settings):
                     environment["BITCART_ADMIN_SERVER_API_URL"] = INTERNAL_API_URL
                 environment["BITCART_STORE_HOST"] = settings.HOST or ""
             with modify_key(services, "store", "environment") as environment:
-                environment["BITCART_ADMIN_HOST"] = urljoin(settings.HOST or "", "admin")
+                environment["BITCART_ADMIN_HOST"] = urljoin(
+                    f"{settings.HOST or ''}{settings.BASE_PATH}/", "admin"
+                )
                 environment["BITCART_ADMIN_ROOTPATH"] = environment["BITCART_ADMIN_ROOTPATH"].replace("/", "/admin")
     elif ADMIN_AVAILABLE:
         with modify_key(services, "admin", "environment") as environment:
@@ -47,3 +49,14 @@ def rule(services, settings):
                 environment["BITCART_ADMIN_SERVER_API_URL"] = INTERNAL_API_URL
     _modify_backend_env(services, "backend", settings, STORE_AVAILABLE, ADMIN_AVAILABLE)
     _modify_backend_env(services, "worker", settings, STORE_AVAILABLE, ADMIN_AVAILABLE)
+    if settings.BASE_PATH:
+        for service in ("store", "admin", "backend", "worker"):
+            if not services.get(service):
+                continue
+            with modify_key(services, service, "environment") as environment:
+                for env_name, value in tuple(environment.items()):
+                    if not env_name.endswith("_ROOTPATH"):
+                        continue
+                    environment[env_name] = value.replace(
+                        ":-/", f":-{settings.BASE_PATH}/"
+                    ).replace(":-}", f":-{settings.BASE_PATH}}}")

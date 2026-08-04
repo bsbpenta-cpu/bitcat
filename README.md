@@ -5,6 +5,14 @@
 
 ## Using provided scripts (easy)
 
+### BitCat deployment
+
+This fork includes BitCat branding and a ready-to-run HTTP deployment for
+`http://15.235.184.49/bitcat/`. Run `./deploy-bitcat.sh`; the store is served at
+`/bitcat/`, the admin panel at `/bitcat/admin`, and the API at `/bitcat/api`.
+The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
+complete one-domain installation below a different URL prefix.
+
 To install Bitcart, if you're on linux system(these scripts for windows will be added soon),
 to download, set up, and run your Bitcart instance, it is a matter of few commands:
 

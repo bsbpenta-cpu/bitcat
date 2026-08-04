@@ -51,6 +51,7 @@ Environment variables:
     BITCART_ENABLE_SSH: Gives Bitcart SSH access to the host by allowing it to edit authorized_keys of the host, it can be used for updating or reconfiguring your instance directly through the website. (Default: true)
     BITCART_SSH_PORT: Port where ssh server runs on host machine. Default: 22
     BITCART_HOST: The hostname of your website API (eg. api.example.com)
+    BITCART_BASE_PATH: Optional URL prefix shared by store, admin and API (eg. /bitcat)
     BITCART_LETSENCRYPT_EMAIL: A mail will be sent to this address if certificate expires and fail to renew automatically (eg. me@example.com)
     BITCART_STORE_HOST: The hostname of your website store (eg. example.com)
     BITCART_STORE_API_URL: The URL to your website API (hosted locally or remotely, eg. https://api.example.com)
@@ -262,6 +263,7 @@ fi
 echo "-------SETUP-----------
 Parameters passed:
 BITCART_HOST=$BITCART_HOST
+BITCART_BASE_PATH=$BITCART_BASE_PATH
 REVERSEPROXY_HTTP_PORT=$REVERSEPROXY_HTTP_PORT
 REVERSEPROXY_HTTPS_PORT=$REVERSEPROXY_HTTPS_PORT
 REVERSEPROXY_PROXYPROTOCOL_HTTP_PORT=$REVERSEPROXY_PROXYPROTOCOL_HTTP_PORT

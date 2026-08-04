@@ -115,6 +115,20 @@ def test_one_domain_rule():
     delete_env("INSTALL")
 
 
+def test_one_domain_base_path():
+    set_env("HOST", "15.235.184.49")
+    set_env("BASE_PATH", "/bitcat/")
+    services = generate_config()["services"]
+    assert services["store"]["environment"]["BITCART_STORE_ROOTPATH"].endswith(":-/bitcat/}")
+    assert services["admin"]["environment"]["BITCART_ADMIN_ROOTPATH"].endswith(":-/bitcat/admin}")
+    assert services["backend"]["environment"]["BITCART_BACKEND_ROOTPATH"].endswith(":-/bitcat/api}")
+    assert services["store"]["environment"]["BITCART_ADMIN_HOST"] == "15.235.184.49/bitcat/admin"
+    assert services["store"]["environment"]["BITCART_ADMIN_ROOTPATH"].endswith(":-/bitcat/admin}")
+    assert services["admin"]["environment"]["BITCART_ADMIN_API_URL"] == "https://15.235.184.49/bitcat/api"
+    delete_env("BASE_PATH")
+    delete_env("HOST")
+
+
 # Rule 4
 def check_no_ports(services, ports_components):
     for service in services:
