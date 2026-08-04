@@ -15,10 +15,21 @@
 
   window.bitcart = current || {};
   window.bitcart.onModalReceiveMessage ||= forwardMessage;
-  // The checkout UI belongs to the store in current releases.  Do not append
-  // /api here: that prefix targets the backend, where /i/<id> does not exist.
-  window.bitcart.showInvoice ||= (invoiceId) => {
+  // Checkout paths differ between backend/store releases. Resolve the URL from
+  // the invoice resource instead of guessing an /i/<id> route.
+  window.bitcart.showInvoice ||= async (invoiceId) => {
     const id = encodeURIComponent(invoiceId);
-    window.location.assign(`${base}/i/${id}`);
+    const response = await fetch(`${base}/api/invoices/${id}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Unable to load invoice ${invoiceId}: HTTP ${response.status}`);
+    }
+    const invoice = await response.json();
+    const checkoutUrl = invoice.checkout_url || invoice.payment_url || invoice.url;
+    if (!checkoutUrl) {
+      throw new Error(`Invoice ${invoiceId} does not contain a checkout URL`);
+    }
+    window.location.assign(new URL(checkoutUrl, `${base}/`).href);
   };
 })();

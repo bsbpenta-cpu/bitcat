@@ -18,7 +18,7 @@
         # Current backend images do not expose /api/modal/bitcart.js.  Inject a
         # compatibility bootstrap at the same reliable </head> marker as the
         # branding script; upstream may add attributes to its opening head tag.
-        sub_filter '</head>' '<script src="{{ .BasePath }}/branding/bitcart-modal.js?v=3"></script><script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
+        sub_filter '</head>' '<script src="{{ .BasePath }}/branding/bitcart-modal.js?v=4"></script><script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
 {{ end }}
 
 {{ define "redirects" }}
