@@ -45,6 +45,32 @@ that maps a separate hostname to BitCat.
 The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
 complete one-domain installation below a different URL prefix.
 
+### Invoice modal troubleshooting
+
+For the bundled deployment, the browser-facing API URL must include both the
+non-standard HTTP port and the base path:
+
+```text
+http://15.235.184.49:18080/bitcat/api
+```
+
+Check the effective value and the modal script response on the Docker host:
+
+```bash
+docker compose -p bitcat -f compose/generated.yml config | grep BITCART_STORE_API_URL
+curl -fsS http://127.0.0.1:18080/bitcat/api/modal/bitcart.js | grep -m1 'window.bitcart'
+```
+
+The first command must show
+`http://15.235.184.49:18080/bitcat/api`. The second command must return
+JavaScript rather than HTML or a 404 response. If either check fails, regenerate
+the deployment and containers with `./deploy-bitcat.sh`; `./start.sh` alone does
+not regenerate `compose/generated.yml`. In the browser Network panel, also
+verify that `/bitcat/api/modal/bitcart.js` returns status 200 with a JavaScript
+content type. A request to port 80, or to `/bitcat/modal/bitcart.js` without the
+`/api` segment, indicates a stale generated configuration or stale frontend
+container.
+
 To install Bitcart, if you're on linux system(these scripts for windows will be added soon),
 to download, set up, and run your Bitcart instance, it is a matter of few commands:
 
