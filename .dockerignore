@@ -1,0 +1,17 @@
+.git
+.github
+.coverage
+.deploy
+.env
+.idea
+.mypy_cache
+.pytest_cache
+.vscode
+__pycache__
+compose/bitcart
+compose/generated.yml
+compose/plugins
+coverage.xml
+htmlcov
+venv
+

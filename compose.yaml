@@ -1,0 +1,13 @@
+name: bitcat
+
+services:
+  generator:
+    image: ${BITCARTGEN_DOCKER_IMAGE:-bitcat/docker-compose-generator:local}
+    build:
+      context: .
+      dockerfile: generator/Dockerfile
+    environment:
+      NAME: ${NAME:-}
+    volumes:
+      - ./compose:/app/compose
+

@@ -171,6 +171,18 @@ export BITCART_ADDITIONAL_COMPONENTS=tor
 
 Currently the testing of individual pieces of Bitcart is done via local development installation, see [Manual Deployment](https://docs.bitcart.ai/deployment/manual) about how it is done.
 
+The repository contains a standard `compose.yaml`, so the local generator image
+can be built with Docker Compose without any preparatory scripts:
+
+```bash
+docker compose build
+```
+
+To build the image and generate `compose/generated.yml` in one step, use
+`./build.sh`. The script delegates the image build to the same Compose service,
+then runs the generator with the current `BITCART_*` and `REVERSEPROXY_*`
+environment variables.
+
 When doing some changes in generator, it is usually tested via local python installation, like so:
 
 ```bash
@@ -179,11 +191,11 @@ make generate
 cat compose/generated.yml # see the generated output
 ```
 
-If it is needed to test generator in docker, then run those commands:
+If it is needed to test the generator in Docker with a custom image tag, run:
 
 ```bash
-export BITCARTGEN_DOCKER_IMAGE=bitcart/docker-compose-generator:local
-./build.sh # now uses local image
+export BITCARTGEN_DOCKER_IMAGE=example/bitcat-generator:dev
+./build.sh
 ```
 
 ## Architecture
