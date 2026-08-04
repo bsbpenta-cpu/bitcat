@@ -9,7 +9,7 @@
 
 This fork includes BitCat branding and a deployment which does not interfere
 with an existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat publishes
-port `10080` (HTTP) and `10443` (the internal HTTPS listener), so it does not
+port `18080` (HTTP) and `10443` (the internal HTTPS listener), so it does not
 claim the host's ports 80 or 443. The deployment script also
 disables Bitcart's systemd registration, preventing its first run from
 restarting the shared Docker daemon. It uses the fixed Compose project name
@@ -35,11 +35,12 @@ dedicated port. It is assigned automatically by `deploy-bitcat.sh`:
 ./deploy-bitcat.sh
 ```
 
-Then open `http://IP:10080/bitcat/`. Restrict port 10080 with the VPS firewall
-if it should not be public to everyone. To restore loopback-only access, run
-`REVERSEPROXY_HTTP_PORT=127.0.0.1:10080 ./deploy-bitcat.sh` instead. The HTTP and
-HTTPS bindings can still be overridden explicitly. Other no-change options are
-a second public IP or a tunnel that maps a separate hostname to BitCat.
+Then open `http://IP:18080/bitcat/`. Restrict port 18080 with the VPS firewall
+if it should not be public to everyone. Port 10080 is intentionally avoided:
+Chromium-based browsers block it with `ERR_UNSAFE_PORT`. To make BitCat
+loopback-only, change its HTTP binding in `deploy-bitcat.sh` to
+`127.0.0.1:18080`. Other no-change options are a second public IP or a tunnel
+that maps a separate hostname to BitCat.
 
 The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
 complete one-domain installation below a different URL prefix.
