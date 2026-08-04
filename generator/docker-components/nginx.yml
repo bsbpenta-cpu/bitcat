@@ -11,7 +11,6 @@ services:
       - "nginx_certs:/etc/nginx/certs:ro"
       - "nginx_vhost:/etc/nginx/vhost.d"
       - "./branding:/usr/share/nginx/branding:ro"
-
   nginx-gen:
     restart: unless-stopped
     image: bitcart/docker-gen:0.9.2
