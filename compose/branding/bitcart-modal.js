@@ -15,11 +15,10 @@
 
   window.bitcart = current || {};
   window.bitcart.onModalReceiveMessage ||= forwardMessage;
-  // The removed backend modal client used to provide showInvoice.  Falling
-  // back to the hosted checkout keeps invoice creation functional without
-  // duplicating the backend's payment UI in this compatibility script.
+  // The checkout UI belongs to the store in current releases.  Do not append
+  // /api here: that prefix targets the backend, where /i/<id> does not exist.
   window.bitcart.showInvoice ||= (invoiceId) => {
     const id = encodeURIComponent(invoiceId);
-    window.location.assign(`${base}/api/i/${id}`);
+    window.location.assign(`${base}/i/${id}`);
   };
 })();
