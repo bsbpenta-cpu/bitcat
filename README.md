@@ -12,13 +12,35 @@ existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat listens only on
 `127.0.0.1:10080` (HTTP) and `127.0.0.1:10443` (the internal HTTPS listener), so
 it does not claim the host's public ports 80 or 443. The deployment script also
 disables Bitcart's systemd registration, preventing its first run from
-restarting the shared Docker daemon.
+restarting the shared Docker daemon. It uses the fixed Compose project name
+`bitcat`, so `docker compose ps` from this checkout shows the running stack.
 
 Add the locations from `contrib/nginx/bitcat.conf.example` to the existing
 reverse proxy's HTTPS `server` block. The public store is then served at
 `/bitcat/`, the admin panel at `/bitcat/admin`, and the API at `/bitcat/api`.
 Validate and reload the host proxy after changing its configuration, for
 example with `nginx -t && systemctl reload nginx`.
+
+If the server IP still opens another application, that means the public
+ports are still handled by that application's host proxy. Do not publish
+BitCat on ports 80/443 as a workaround: add the `/bitcat` locations to the
+`server` block which handles that IP (or domain), then reload the host proxy.
+
+It is not possible to serve `http://IP/bitcat` without changing whichever
+proxy owns `IP:80`: only that process can choose where the `/bitcat` request
+goes. If the other project must remain completely untouched, publish BitCat on
+a separate port instead:
+
+```bash
+REVERSEPROXY_HTTP_PORT=10080 ./deploy-bitcat.sh
+```
+
+Then open `http://IP:10080/bitcat/`. Restrict port 10080 with the VPS firewall
+if it should not be public to everyone. The deployment defaults remain
+loopback-only; `REVERSEPROXY_HTTP_PORT` and `REVERSEPROXY_HTTPS_PORT` can be
+overridden explicitly when direct access is desired. Other no-change options
+are a second public IP (bind BitCat's ports on that IP) or a tunnel that maps a
+separate hostname directly to BitCat's loopback port.
 
 The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
 complete one-domain installation below a different URL prefix.
