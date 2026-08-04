@@ -15,8 +15,9 @@
 
   window.bitcart = current || {};
   window.bitcart.onModalReceiveMessage ||= forwardMessage;
-  // Checkout paths differ between backend/store releases. Resolve the URL from
-  // the invoice resource instead of guessing an /i/<id> route.
+  // The invoice API response does not include a checkout URL.  Validate the
+  // invoice through the API, then open the documented admin checkout route
+  // using the canonical invoice id returned by the API.
   window.bitcart.showInvoice ||= async (invoiceId) => {
     const id = encodeURIComponent(invoiceId);
     const response = await fetch(`${base}/api/invoices/${id}`, {
@@ -26,10 +27,9 @@
       throw new Error(`Unable to load invoice ${invoiceId}: HTTP ${response.status}`);
     }
     const invoice = await response.json();
-    const checkoutUrl = invoice.checkout_url || invoice.payment_url || invoice.url;
-    if (!checkoutUrl) {
-      throw new Error(`Invoice ${invoiceId} does not contain a checkout URL`);
+    if (!invoice.id) {
+      throw new Error(`Invoice ${invoiceId} response does not contain an id`);
     }
-    window.location.assign(new URL(checkoutUrl, `${base}/`).href);
+    window.location.assign(`${base}/admin/i/${encodeURIComponent(invoice.id)}`);
   };
 })();
