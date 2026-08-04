@@ -73,11 +73,11 @@ bitcart_start() {
     "${compose_command[@]}" up --build --remove-orphans -d "$@"
 
     # nginx-gen watches Docker events, but it does not watch its bind-mounted
-    # template. Restart an already running generator so changes to nginx.tmpl
-    # are rendered into default.conf instead of leaving the old configuration
-    # active after an update.
+    # template. Recreate it rather than using `restart`: recreation guarantees
+    # that Compose applies the current bind mount and starts docker-gen with the
+    # current service definition.
     if "${compose_command[@]}" ps --services --status running | grep -qx nginx-gen; then
-        "${compose_command[@]}" restart nginx-gen
+        "${compose_command[@]}" up -d --force-recreate nginx-gen
     fi
 }
 
