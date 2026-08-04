@@ -8,6 +8,16 @@
     {{ end }}
 {{ end }}
 
+{{ define "bitcat_branding" }}
+        # The UI containers may compress HTML themselves.  Request an
+        # uncompressed response so nginx's substitution filter can inject the
+        # branding bootstrap reliably.
+        proxy_set_header Accept-Encoding "";
+        sub_filter_types text/html;
+        sub_filter_once off;
+        sub_filter '</head>' '<script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
+{{ end }}
+
 {{ define "redirects" }}
     {{ $basePath := .BasePath }}
     {{ range $container := $.Containers }}
@@ -36,6 +46,9 @@
                     {{ $adminUsed = "true" }}
     location {{ $basePath }}/admin {
         proxy_pass http://{{ trim $container.Env.VIRTUAL_HOST_NAME }};
+                    {{ if ne $basePath "" }}
+        {{ template "bitcat_branding" (dict "BasePath" $basePath) }}
+                    {{ end }}
     }
                 {{ end }}
             {{ end }}
@@ -277,10 +290,9 @@ server {
     }
     location {{ if ne $basePath "" }}{{ $basePath }}/{{ else }}/{{ end }} {
         proxy_pass http://{{ trim $firstUpstreamName }};
-        proxy_set_header Accept-Encoding "";
-        sub_filter_types text/html;
-        sub_filter_once off;
-        sub_filter '</head>' '<script src="{{ $basePath }}/branding/bitcat.js" defer></script></head>';
+        {{ if ne $basePath "" }}
+        {{ template "bitcat_branding" (dict "BasePath" $basePath) }}
+        {{ end }}
     }
     location {{ $basePath }}/branding/ { alias /usr/share/nginx/branding/; }
     {{ template "redirects" (dict "HostName" $firstHostName "Containers" $ "BasePath" $basePath) }}
@@ -530,10 +542,7 @@ server {
         {{ else }}
         proxy_pass {{ trim $proto }}://{{ trim $upstream_name }};
         {{ if ne (or $.Env.BITCART_BASE_PATH "") "" }}
-        proxy_set_header Accept-Encoding "";
-        sub_filter_types text/html;
-        sub_filter_once off;
-        sub_filter '</head>' '<script src="{{ $.Env.BITCART_BASE_PATH }}/branding/bitcat.js" defer></script></head>';
+        {{ template "bitcat_branding" (dict "BasePath" $.Env.BITCART_BASE_PATH) }}
         {{ end }}
         {{ end }}
         {{ if (exists (printf "/etc/nginx/htpasswd/%s" $host)) }}
