@@ -69,7 +69,16 @@ EOF
 bitcart_start() {
     create_backup_volume
     install_plugins
-    docker compose -p "$NAME" -f compose/generated.yml up --build --remove-orphans -d "$@"
+    local compose_command=(docker compose -p "$NAME" -f compose/generated.yml)
+    "${compose_command[@]}" up --build --remove-orphans -d "$@"
+
+    # nginx-gen watches Docker events, but it does not watch its bind-mounted
+    # template. Restart an already running generator so changes to nginx.tmpl
+    # are rendered into default.conf instead of leaving the old configuration
+    # active after an update.
+    if "${compose_command[@]}" ps --services --status running | grep -qx nginx-gen; then
+        "${compose_command[@]}" restart nginx-gen
+    fi
 }
 
 bitcart_stop() {
