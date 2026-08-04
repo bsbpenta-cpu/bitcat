@@ -69,7 +69,16 @@ EOF
 bitcart_start() {
     create_backup_volume
     install_plugins
-    docker compose -p "$NAME" -f compose/generated.yml up --build --remove-orphans -d "$@"
+    local compose_command=(docker compose -p "$NAME" -f compose/generated.yml)
+    "${compose_command[@]}" up --build --remove-orphans -d "$@"
+
+    # nginx-gen watches Docker events, but it does not watch its bind-mounted
+    # template. Recreate it rather than using `restart`: recreation guarantees
+    # that Compose applies the current bind mount and starts docker-gen with the
+    # current service definition.
+    if "${compose_command[@]}" ps --services --status running | grep -qx nginx-gen; then
+        "${compose_command[@]}" up -d --force-recreate nginx-gen
+    fi
 }
 
 bitcart_stop() {
