@@ -73,7 +73,7 @@ bitcart_start() {
 }
 
 bitcart_stop() {
-    docker compose -p "$NAME" -f compose/generated.yml down
+    docker compose -p "$NAME" -f compose/generated.yml down "$@"
 }
 
 bitcart_reset_plugins() {

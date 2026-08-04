@@ -1,5 +1,5 @@
-# Add this location to the HTTPS server block of the reverse proxy that already
-# serves your public domain, then validate and reload that proxy.
+# Add these locations to the server block of the reverse proxy that already
+# serves your public IP/domain, then validate and reload that proxy.
 #
 # proxy_pass intentionally has no trailing slash: the /bitcat/ prefix must be
 # preserved because BITCART_BASE_PATH is set to /bitcat in deploy-bitcat.sh.
@@ -8,7 +8,7 @@ location = /bitcat {
 }
 
 location /bitcat/ {
-    proxy_pass http://127.0.0.1:10080;
+    proxy_pass http://127.0.0.1:18080;
     proxy_http_version 1.1;
 
     proxy_set_header Host $host;

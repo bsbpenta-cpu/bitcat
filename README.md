@@ -7,18 +7,101 @@
 
 ### BitCat deployment
 
-This fork includes BitCat branding and a deployment intended to run behind an
-existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat listens only on
-`127.0.0.1:10080` (HTTP) and `127.0.0.1:10443` (the internal HTTPS listener), so
-it does not claim the host's public ports 80 or 443. The deployment script also
+This fork includes BitCat branding and a deployment which does not interfere
+with an existing host reverse proxy. Run `./deploy-bitcat.sh`; BitCat publishes
+port `18080` (HTTP) and `10443` (the internal HTTPS listener), so it does not
+claim the host's ports 80 or 443. The deployment script also
 disables Bitcart's systemd registration, preventing its first run from
-restarting the shared Docker daemon.
+restarting the shared Docker daemon. It uses the fixed Compose project name
+`bitcat`, so `docker compose ps` from this checkout shows the running stack.
+
+To stop and remove every container in the generated BitCat stack, run:
+
+```bash
+./stop.sh --remove-orphans
+```
+
+The equivalent explicit Compose command is:
+
+```bash
+docker compose -p bitcat -f compose/generated.yml down --remove-orphans
+```
+
+A plain `docker compose down` reads the repository's top-level `compose.yaml`,
+which defines only the image generator, not the services in
+`compose/generated.yml`; it therefore does not stop the deployed stack. Neither
+command above passes `--volumes`, so wallet and database volumes are preserved.
+Do not add `--volumes` unless permanent deletion of BitCat data is intended.
 
 Add the locations from `contrib/nginx/bitcat.conf.example` to the existing
 reverse proxy's HTTPS `server` block. The public store is then served at
 `/bitcat/`, the admin panel at `/bitcat/admin`, and the API at `/bitcat/api`.
 Validate and reload the host proxy after changing its configuration, for
 example with `nginx -t && systemctl reload nginx`.
+
+If the server IP still opens another application, that means the public
+ports are still handled by that application's host proxy. Do not publish
+BitCat on ports 80/443 as a workaround: add the `/bitcat` locations to the
+`server` block which handles that IP (or domain), then reload the host proxy.
+
+It is not possible to serve `http://IP/bitcat` without changing whichever
+proxy owns `IP:80`: only that process can choose where the `/bitcat` request
+goes. If the other project must remain completely untouched, use BitCat's
+dedicated port. It is assigned automatically by `deploy-bitcat.sh`:
+
+```bash
+./deploy-bitcat.sh
+```
+
+Then open `http://IP:18080/bitcat/`. Restrict port 18080 with the VPS firewall
+if it should not be public to everyone. Port 10080 is intentionally avoided:
+Chromium-based browsers block it with `ERR_UNSAFE_PORT`. To make BitCat
+loopback-only, change its HTTP binding in `deploy-bitcat.sh` to
+`127.0.0.1:18080`. Other no-change options are a second public IP or a tunnel
+that maps a separate hostname to BitCat.
+
+#### Create a $10 payment link through the API
+
+Create an API token in the BitCat admin panel and copy the ID of the store that
+will receive the payment. The API schema for the installed version is available
+at `http://IP:18080/bitcat/api/docs`. Then run:
+
+```bash
+set -Eeuo pipefail
+
+export BITCAT_URL="http://15.235.184.49:18080/bitcat"
+export BITCAT_TOKEN="replace-with-api-token"
+export BITCAT_STORE_ID="replace-with-store-id"
+
+openapi=$(curl --fail-with-body --silent --show-error \
+  "$BITCAT_URL/api/openapi.json")
+invoice_path=$(jq -er \
+  '.paths | keys | map(select(rtrimstr("/") == "/invoices")) | first' \
+  <<<"$openapi")
+
+response=$(curl --fail-with-body --silent --show-error --location \
+  --request POST "$BITCAT_URL/api$invoice_path" \
+  --header "Authorization: Bearer $BITCAT_TOKEN" \
+  --header "Content-Type: application/json" \
+  --data "$(jq -nc \
+    --arg store_id "$BITCAT_STORE_ID" \
+    --arg order_id "order-$(date +%s)" \
+    '{price: 10, currency: "USD", store_id: $store_id, order_id: $order_id}')")
+
+invoice_id=$(jq -er '.id' <<<"$response")
+payment_link="$BITCAT_URL/invoice?id=$invoice_id"
+printf '%s\n' "$payment_link"
+```
+
+The command first reads the installed API's OpenAPI document instead of
+assuming whether its invoice route has a trailing slash. It then creates an
+invoice for 10 USD and prints its customer payment link. `set -e` and `jq -e`
+stop the script on an HTTP/API error, so a failed request can never produce a
+link containing `id=null`. If the OpenAPI request itself returns 404, BitCat is
+not serving the expected `/bitcat/api` route; rerun `./deploy-bitcat.sh` and
+check `docker compose ps` before creating an invoice. Do not put the API token
+in a public URL, frontend JavaScript, or source control. The cryptocurrency
+amount is calculated from the store's configured wallets and exchange rate.
 
 The regular `setup.sh` remains configurable: set `BITCART_BASE_PATH` to host the
 complete one-domain installation below a different URL prefix.
