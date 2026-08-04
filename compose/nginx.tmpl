@@ -21,6 +21,14 @@
         sub_filter '</head>' '<script src="{{ .BasePath }}/branding/bitcart-modal.js?v=5"></script><script src="{{ .BasePath }}/branding/bitcat.js" defer></script></head>';
 {{ end }}
 
+
+{{ define "bitcart_modal_client" }}
+    location = {{ .BasePath }}/api/modal/bitcart.js {
+        alias /usr/share/nginx/branding/bitcart-modal.js;
+        default_type application/javascript;
+    }
+{{ end }}
+
 {{ define "redirects" }}
     {{ $basePath := .BasePath }}
     {{ range $container := $.Containers }}
@@ -298,6 +306,7 @@ server {
         {{ end }}
     }
     location {{ $basePath }}/branding/ { alias /usr/share/nginx/branding/; }
+    {{ template "bitcart_modal_client" (dict "BasePath" $basePath) }}
     {{ template "redirects" (dict "HostName" $firstHostName "Containers" $ "BasePath" $basePath) }}
     {{ else }}
     location ^~ / {
@@ -561,6 +570,7 @@ server {
     {{ if ne (or $.Env.BITCART_BASE_PATH "") "" }}
     location = / { return 302 {{ $.Env.BITCART_BASE_PATH }}/; }
     location {{ $.Env.BITCART_BASE_PATH }}/branding/ { alias /usr/share/nginx/branding/; }
+    {{ template "bitcart_modal_client" (dict "BasePath" $.Env.BITCART_BASE_PATH) }}
     {{ end }}
     {{ template "redirects" (dict "HostName" $host_name "Containers" $ "BasePath" (or $.Env.BITCART_BASE_PATH "")) }}
 }

@@ -10,3 +10,12 @@ def test_modal_bootstrap_uses_closing_head_marker():
 
     assert f"{closing_head_filter}{modal_script}" in contents
     assert "sub_filter '<head>'" not in contents
+
+
+def test_modal_client_served_from_api_path():
+    template = Path(__file__).parents[2] / "compose" / "nginx.tmpl"
+    contents = template.read_text()
+
+    assert "location = {{ .BasePath }}/api/modal/bitcart.js" in contents
+    assert "alias /usr/share/nginx/branding/bitcart-modal.js;" in contents
+    assert "default_type application/javascript;" in contents

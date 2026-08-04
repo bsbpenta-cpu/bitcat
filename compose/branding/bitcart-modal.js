@@ -1,6 +1,6 @@
 (() => {
   const script = document.currentScript;
-  const base = script.src.replace(/\/branding\/bitcart-modal\.js(?:\?.*)?$/, "");
+  const base = script.src.replace(/\/(?:branding|api\/modal)\/bitcart(?:-modal)?\.js(?:\?.*)?$/, "");
   const current = window.bitcart;
   let modal;
   let frame;
