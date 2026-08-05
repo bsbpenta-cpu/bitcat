@@ -5,4 +5,4 @@
 load_env
 
 cd "$BITCART_BASE_DIRECTORY" || exit 1
-bitcart_stop
+bitcart_stop "$@"
